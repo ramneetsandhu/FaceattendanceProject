@@ -1,0 +1,67 @@
+{% extends "main.html" %}
+{% load static %}
+{% block content %}
+    <div class="container mt-5">
+        <div class="row mb-5">
+
+            <div class="col-6 justify-content-center text-center mt-5" style="">
+        <div style="width: 18rem;margin-left:150px; margin-top:40px;">
+       <img src="{% static 'img/training3.jpg' %}" class="img-responsive profile-pic card-img-top" alt="training">
+                <hr>
+            <form action="">
+            {%  csrf_token %}
+            <button type="button" class="btn btn-success" id="trainingImageBtn" data-bs-toggle="modal" data-bs-target="#trainingImage">
+                Train Image Classifier
+            </button>
+                 </form>
+        </div>
+            </div>
+            <div class="col-6 justify-content-right text-center mt-5" style="">
+                    <img src="{% static 'graph/training.png' %}" alt=" " width="600" height="400">
+                </div>
+    </div>
+    </div>
+
+        <div class="modal fade" id="trainingImage" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Image Processing ..</h5>
+      </div>
+      <div class="modal-body text-center" id="processing_text">
+            <div id="spinner" class="spinner-border" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+      </div>
+      <div class="modal-footer">
+        <button id="processingButton" type="button" class="btn btn-secondary d-none" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+        <script>
+        $(document).ready(function() {
+        $("#trainingImageBtn").click(function() {
+                let url = "http://127.0.0.1:8000/training/all/";
+                formData = new FormData();
+                formData.append('csrfmiddlewaretoken',$('input[name=csrfmiddlewaretoken]').val());
+                content = document.getElementById('processing_text');
+                content.innerHTML = 'Please wait processing image';
+                fetch(url,  {
+                    method : 'post',
+                    body: formData
+                 }).then(response => response.json())
+                 .then(data => {
+                    content.innerHTML = " ";
+                    content.innerHTML  = data['msg']
+                    document.getElementById('processingButton').classList.remove('d-none');
+                 });
+
+                content = document.getElementById('processing_text');
+        });
+});
+        </script>
+
+{% endblock %}

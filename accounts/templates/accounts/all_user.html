@@ -1,0 +1,113 @@
+{% extends "main.html" %}
+
+{% block content %}
+    <div class="container">
+    <div class="d-flex mt-4">
+        <h3 class="title">All User List</h3>
+    </div>
+    <hr>
+    <div class="row my-4 card shadow">
+        <div class="col card-body">
+            <table class="table table-striped" id="userListingTable">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Created On</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for obj in userobj %}
+                    <tr>
+                        <th scope="row">{{ obj.name }}</th>
+                        <td>{{ obj.email }}</td>
+                        <td>{{ obj.type }}</td>
+                        <td>
+                            {% if obj.active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-danger">InActive</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ obj.created_at|date:"d/m/Y" }}</td>
+                        <td>
+                            <a href="{% url 'accounts:profile' pk=obj.id  %}" class="btn btn-sm btn-success" title="Edit Profile">
+                                  <i class="fa fa-pen"></i>
+                            </a>
+                            {% if obj.username != username %}
+                            <button type="button" class="btn btn-sm btn-danger del-id"
+                               data-id="{{ obj.id }}"
+                               title="Delete Profile">
+                                  <i class="fa fa-trash" aria-hidden="true"></i>
+                            </button>
+                            {% endif %}
+                            <a href="{% url 'accounts:dataset' pk=obj.id  %}" class="btn btn-sm btn-success" title="Upload Dataset">
+                                <i class="fa fa-upload" aria-hidden="true"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr class="mt-5">
+                        <td colspan="7" align="center">
+                            <p>No User found</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <hr>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+        $(document).ready(function() {
+                var showUserTable = $('#userListingTable').DataTable();
+                const url = "http://127.0.0.1:8000/accounts/"
+        const delUid = (elem) => {
+        swal({
+          title: "Are you sure?",
+          text: "Once deleted, you will not be able to recover this User",
+          icon: "warning",
+          buttons: true,
+          dangerMode: true,
+        }).then((response) => {
+            if (response) {
+                swal("User has been deleted", {
+                  icon: "success",
+                });
+                let targid = elem.target.getAttribute('data-id');
+                return  fetch(url+targid+"/archive/", {
+                    method:  "GET",
+                }).then(res=> {
+                    return res.json();
+                }).then(function(res) {
+                    if (res.status) {
+                    showUserTable.row($("[data-id='"+targid+"'").parents('tr')).remove().draw();
+                    } else if (res.status =='unauthorized') {
+                        swal("You are not authorized is to delete this user.");
+                    }
+                }).catch((reason) =>{
+                  console.log(reason);
+                });
+            } else {
+                swal("User is safe");
+            }
+        });
+    };
+
+    document.querySelectorAll('[data-id]').forEach(function(elem) {
+     elem.addEventListener('click', (elem) =>{
+         delUid(elem);
+        });
+    });
+
+
+        });
+</script>
+{% endblock %}
